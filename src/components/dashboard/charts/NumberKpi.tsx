@@ -1,15 +1,27 @@
-import { KpiDataResponse } from '@/lib/api';
+import { NormalizedKpiData } from '@/lib/api';
 import { useEffect, useState } from 'react';
 
 interface NumberKpiProps {
-  kpi: KpiDataResponse;
+  kpi: NormalizedKpiData;
 }
 
 export function NumberKpi({ kpi }: NumberKpiProps) {
   const [displayValue, setDisplayValue] = useState(0);
-  const targetValue = kpi.visualization?.value || 0;
-  const suffix = kpi.visualization?.suffix || '';
-  const prefix = kpi.visualization?.prefix || '';
+  
+  // Extract the value from data array
+  // Format: [{ "total_active_employees": 41597 }]
+  const getValue = (): number => {
+    if (!kpi.data?.length) return 0;
+    const firstItem = kpi.data[0];
+    // Find the first numeric value in the object
+    for (const key of Object.keys(firstItem)) {
+      const val = firstItem[key];
+      if (typeof val === 'number') return val;
+    }
+    return 0;
+  };
+
+  const targetValue = getValue();
 
   useEffect(() => {
     const duration = 1000;
@@ -36,12 +48,9 @@ export function NumberKpi({ kpi }: NumberKpiProps) {
     <div className="flex h-full flex-col items-center justify-center py-6">
       <div className="text-center">
         <span className="text-5xl font-bold tabular-nums text-primary animate-count-up">
-          {prefix}
           {displayValue.toLocaleString()}
         </span>
-        {suffix && (
-          <span className="ml-2 text-lg text-muted-foreground">{suffix}</span>
-        )}
+        <span className="ml-2 text-lg text-muted-foreground">employees</span>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { KpiDataResponse } from '@/lib/api';
+import { NormalizedKpiData } from '@/lib/api';
 import {
   PieChart,
   Pie,
@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 
 interface PieChartKpiProps {
-  kpi: KpiDataResponse;
+  kpi: NormalizedKpiData;
 }
 
 const COLORS = [
@@ -22,9 +22,7 @@ const COLORS = [
 ];
 
 export function PieChartKpi({ kpi }: PieChartKpiProps) {
-  const vizData = kpi.visualization?.data;
-
-  if (!vizData?.labels || !vizData?.datasets?.[0]?.data) {
+  if (!kpi.data?.length) {
     return (
       <div className="flex h-44 items-center justify-center text-muted-foreground">
         No data available
@@ -32,10 +30,22 @@ export function PieChartKpi({ kpi }: PieChartKpiProps) {
     );
   }
 
-  const chartData = vizData.labels.map((label, index) => ({
-    name: label,
-    value: vizData.datasets[0].data[index],
-  }));
+  // Transform raw data to chart format
+  // Format: [{ "gender": "Male", "count": 22334 }, ...]
+  const chartData = kpi.data.map(item => {
+    let name = '';
+    let value = 0;
+    
+    for (const [key, val] of Object.entries(item)) {
+      if (typeof val === 'string' && !name) {
+        name = val;
+      } else if (typeof val === 'number' && key !== 'percentage') {
+        value = val;
+      }
+    }
+    
+    return { name, value };
+  });
 
   const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
@@ -80,7 +90,7 @@ export function PieChartKpi({ kpi }: PieChartKpiProps) {
             iconType="circle"
             iconSize={8}
             wrapperStyle={{ fontSize: 11 }}
-            formatter={(value, entry) => {
+            formatter={(value) => {
               const item = chartData.find((d) => d.name === value);
               const percentage = item ? ((item.value / total) * 100).toFixed(1) : 0;
               return (

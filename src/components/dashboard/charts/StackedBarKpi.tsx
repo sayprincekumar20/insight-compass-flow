@@ -1,4 +1,4 @@
-import { KpiDataResponse } from '@/lib/api';
+import { NormalizedKpiData } from '@/lib/api';
 import {
   BarChart,
   Bar,
@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 
 interface StackedBarKpiProps {
-  kpi: KpiDataResponse;
+  kpi: NormalizedKpiData;
 }
 
 const COLORS = [
@@ -22,7 +22,6 @@ const COLORS = [
 ];
 
 export function StackedBarKpi({ kpi }: StackedBarKpiProps) {
-  // Transform raw data for stacked bar
   const rawData = kpi.data || [];
 
   if (!rawData.length) {
@@ -37,10 +36,10 @@ export function StackedBarKpi({ kpi }: StackedBarKpiProps) {
   const grouped: Record<string, Record<string, number>> = {};
   const genders = new Set<string>();
 
-  rawData.forEach((item: any) => {
-    const dept = item.department || item.function || 'Unknown';
-    const gender = item.gender || 'Unknown';
-    const count = item.count || item.employee_count || 1;
+  rawData.forEach((item) => {
+    const dept = (item.department || item.function || 'Unknown') as string;
+    const gender = (item.gender || 'Unknown') as string;
+    const count = (item.count || item.employee_count || 1) as number;
 
     if (!grouped[dept]) grouped[dept] = {};
     grouped[dept][gender] = (grouped[dept][gender] || 0) + count;

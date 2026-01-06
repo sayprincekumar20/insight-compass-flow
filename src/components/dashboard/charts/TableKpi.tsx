@@ -1,4 +1,4 @@
-import { KpiDataResponse } from '@/lib/api';
+import { NormalizedKpiData } from '@/lib/api';
 import {
   Table,
   TableBody,
@@ -10,13 +10,11 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface TableKpiProps {
-  kpi: KpiDataResponse;
+  kpi: NormalizedKpiData;
 }
 
 export function TableKpi({ kpi }: TableKpiProps) {
-  const vizData = kpi.visualization;
-  const columns = vizData?.columns || [];
-  const data = (vizData as any)?.data || kpi.data || [];
+  const data = kpi.data || [];
 
   if (!data.length) {
     return (
@@ -26,7 +24,7 @@ export function TableKpi({ kpi }: TableKpiProps) {
     );
   }
 
-  const displayColumns = columns.length > 0 ? columns : Object.keys(data[0] || {});
+  const displayColumns = Object.keys(data[0] || {});
 
   const formatColumnName = (col: string) => {
     return col
@@ -58,7 +56,7 @@ export function TableKpi({ kpi }: TableKpiProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.slice(0, 10).map((row: Record<string, unknown>, rowIndex: number) => (
+          {data.slice(0, 10).map((row, rowIndex) => (
             <TableRow key={rowIndex}>
               {displayColumns.slice(0, 4).map((col) => (
                 <TableCell key={col} className="py-2 text-sm">
