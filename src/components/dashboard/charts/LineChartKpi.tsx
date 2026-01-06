@@ -1,7 +1,5 @@
-import { KpiDataResponse } from '@/lib/api';
+import { NormalizedKpiData } from '@/lib/api';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,13 +10,11 @@ import {
 } from 'recharts';
 
 interface LineChartKpiProps {
-  kpi: KpiDataResponse;
+  kpi: NormalizedKpiData;
 }
 
 export function LineChartKpi({ kpi }: LineChartKpiProps) {
-  const vizData = kpi.visualization?.data;
-
-  if (!vizData?.labels || !vizData?.datasets?.[0]?.data) {
+  if (!kpi.data?.length) {
     return (
       <div className="flex h-44 items-center justify-center text-muted-foreground">
         No data available
@@ -26,10 +22,21 @@ export function LineChartKpi({ kpi }: LineChartKpiProps) {
     );
   }
 
-  const chartData = vizData.labels.map((label, index) => ({
-    name: label,
-    value: vizData.datasets[0].data[index],
-  }));
+  // Transform raw data to chart format
+  const chartData = kpi.data.map(item => {
+    let label = '';
+    let value = 0;
+    
+    for (const [key, val] of Object.entries(item)) {
+      if (typeof val === 'string' && !label) {
+        label = val;
+      } else if (typeof val === 'number') {
+        value = val;
+      }
+    }
+    
+    return { name: label, value };
+  });
 
   return (
     <div className="h-56">
@@ -49,7 +56,6 @@ export function LineChartKpi({ kpi }: LineChartKpiProps) {
             dataKey="name"
             tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
             tickFormatter={(value) => {
-              // Format month labels like "2024-01" to "Jan 24"
               if (value.match(/^\d{4}-\d{2}$/)) {
                 const [year, month] = value.split('-');
                 const date = new Date(parseInt(year), parseInt(month) - 1);
@@ -70,7 +76,7 @@ export function LineChartKpi({ kpi }: LineChartKpiProps) {
               borderRadius: 'var(--radius)',
               fontSize: 12,
             }}
-            formatter={(value: number) => [value.toLocaleString(), 'Hired']}
+            formatter={(value: number) => [value.toLocaleString(), 'Count']}
             labelFormatter={(label) => {
               if (label.match(/^\d{4}-\d{2}$/)) {
                 const [year, month] = label.split('-');

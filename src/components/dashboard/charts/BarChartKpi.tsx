@@ -1,4 +1,4 @@
-import { KpiDataResponse } from '@/lib/api';
+import { NormalizedKpiData } from '@/lib/api';
 import {
   BarChart,
   Bar,
@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 
 interface BarChartKpiProps {
-  kpi: KpiDataResponse;
+  kpi: NormalizedKpiData;
 }
 
 const COLORS = [
@@ -24,9 +24,7 @@ const COLORS = [
 ];
 
 export function BarChartKpi({ kpi }: BarChartKpiProps) {
-  const vizData = kpi.visualization?.data;
-
-  if (!vizData?.labels || !vizData?.datasets?.[0]?.data) {
+  if (!kpi.data?.length) {
     return (
       <div className="flex h-44 items-center justify-center text-muted-foreground">
         No data available
@@ -34,11 +32,27 @@ export function BarChartKpi({ kpi }: BarChartKpiProps) {
     );
   }
 
-  const chartData = vizData.labels.map((label, index) => ({
-    name: label.length > 20 ? `${label.slice(0, 18)}...` : label,
-    fullName: label,
-    value: vizData.datasets[0].data[index],
-  }));
+  // Transform raw data to chart format
+  // Format: [{ "department": "X", "employee_count": 123 }, ...]
+  const chartData = kpi.data.map(item => {
+    // Find label key (first string value)
+    let name = '';
+    let value = 0;
+    
+    for (const [key, val] of Object.entries(item)) {
+      if (typeof val === 'string' && !name) {
+        name = val;
+      } else if (typeof val === 'number' && key !== 'percentage') {
+        value = val;
+      }
+    }
+    
+    return {
+      name: name.length > 25 ? `${name.slice(0, 23)}...` : name,
+      fullName: name,
+      value,
+    };
+  });
 
   return (
     <div className="h-56">
@@ -58,7 +72,7 @@ export function BarChartKpi({ kpi }: BarChartKpiProps) {
             type="category"
             dataKey="name"
             tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-            width={100}
+            width={110}
           />
           <Tooltip
             contentStyle={{
