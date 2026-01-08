@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { DashboardTabs, DashboardTab } from '@/components/dashboard/DashboardTabs';
 import { FilterPanel } from '@/components/dashboard/FilterPanel';
 import { KpiGrid } from '@/components/dashboard/KpiGrid';
 import {
@@ -14,6 +15,7 @@ import { toast } from 'sonner';
 
 const Index = () => {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<DashboardTab>('active-employees');
   const [activeFilters, setActiveFilters] = useState<KpiFilters>({});
 
   // Fetch available filters
@@ -39,9 +41,8 @@ const Index = () => {
   const {
     data: dashboard,
     isLoading: dashboardLoading,
-    error: dashboardError,
   } = useQuery({
-    queryKey: ['dashboard', activeFilters],
+    queryKey: ['dashboard', activeFilters, activeTab],
     queryFn: () => fetchDashboard(activeFilters),
     staleTime: 60000,
     retry: 2,
@@ -60,10 +61,15 @@ const Index = () => {
     toast.success('Dashboard refreshed');
   }, [queryClient]);
 
+  const handleTabChange = useCallback((tab: DashboardTab) => {
+    setActiveTab(tab);
+    // Reset filters when changing tabs
+    setActiveFilters({});
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
-        kpis={normalizedKpis}
         health={health || null}
         timestamp={dashboard?.timestamp || null}
         isLoading={dashboardLoading}
@@ -72,6 +78,10 @@ const Index = () => {
 
       <main className="container py-6">
         <div className="space-y-6">
+          {/* Tabs */}
+          <DashboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
+
+          {/* Filters */}
           <FilterPanel
             filters={filters || null}
             activeFilters={activeFilters}
@@ -79,11 +89,13 @@ const Index = () => {
             isLoading={filtersLoading}
           />
 
+          {/* KPI Grid */}
           <KpiGrid
             kpis={normalizedKpis}
             isLoading={dashboardLoading}
           />
 
+          {/* Footer info */}
           {dashboard && (
             <div className="flex items-center justify-center gap-4 py-4 text-sm text-muted-foreground">
               <span>

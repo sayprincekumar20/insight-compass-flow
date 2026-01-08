@@ -23,7 +23,7 @@ export interface KpiFilters {
   departments?: string[];
   locations?: string[];
   designations?: string[];
-  gender?: string;
+  gender?: string[];
   start_date?: string;
   end_date?: string;
 }
@@ -127,7 +127,7 @@ export async function fetchDashboard(filters?: KpiFilters): Promise<DashboardRes
   const hasFilters = filters && Object.keys(filters).some(key => {
     const value = filters[key as keyof KpiFilters];
     if (Array.isArray(value)) return value.length > 0;
-    return value !== undefined && value !== '' && value !== 'all';
+    return value !== undefined && value !== '';
   });
 
   // If no filters, use initial endpoint
@@ -150,12 +150,12 @@ export async function fetchDashboard(filters?: KpiFilters): Promise<DashboardRes
     };
   }
 
-  // Clean up filters - remove empty arrays and 'all' gender
+  // Clean up filters - remove empty arrays
   const cleanFilters: Record<string, unknown> = {};
   if (filters.departments?.length) cleanFilters.departments = filters.departments;
   if (filters.locations?.length) cleanFilters.locations = filters.locations;
   if (filters.designations?.length) cleanFilters.designations = filters.designations;
-  if (filters.gender && filters.gender !== 'all') cleanFilters.gender = filters.gender;
+  if (filters.gender?.length) cleanFilters.gender = filters.gender;
   if (filters.start_date) cleanFilters.start_date = filters.start_date;
   if (filters.end_date) cleanFilters.end_date = filters.end_date;
 
