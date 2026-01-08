@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Filter, X, RotateCcw, ChevronDown, Calendar } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Popover,
   PopoverContent,
@@ -174,217 +173,190 @@ export function FilterPanel({
     }
   };
 
+  const applyFilters = () => {
+    onFiltersChange(localFilters);
+  };
+
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm animate-slide-up">
-      <div className="flex flex-col gap-4">
-        {/* Filter Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Filter className="h-4 w-4" />
-            <span>Filters</span>
-          </div>
-          {activeCount > 0 && (
+    <div className="flex flex-wrap items-end gap-3 py-4">
+      {/* Department Filter */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Department</Label>
+        <Popover>
+          <PopoverTrigger asChild>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              onClick={resetFilters}
-              disabled={isLoading}
-              className="h-8 gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Reset
-            </Button>
-          )}
-        </div>
-
-        {/* Filter Row */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Department Filter */}
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">Department</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 min-w-[160px] justify-between bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                  disabled={isLoading || !filters}
-                >
-                  <span className="truncate">{getDisplayLabel('departments')}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-0" align="start">
-                <ScrollArea className="h-[280px]">
-                  <div className="p-3 space-y-2">
-                    {filters?.departments.map((dept) => (
-                      <div key={dept.value} className="flex items-center space-x-3 py-1">
-                        <Checkbox
-                          id={`dept-${dept.value}`}
-                          checked={localFilters.departments?.includes(dept.value)}
-                          onCheckedChange={() => handleDepartmentToggle(dept.value)}
-                        />
-                        <Label
-                          htmlFor={`dept-${dept.value}`}
-                          className="flex-1 text-sm font-normal cursor-pointer"
-                        >
-                          {dept.value}
-                          <span className="ml-2 text-muted-foreground">
-                            ({dept.count?.toLocaleString()})
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Location Filter */}
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">Location</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 min-w-[140px] justify-between bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
-                  disabled={isLoading || !filters}
-                >
-                  <span className="truncate">{getDisplayLabel('locations')}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-0" align="start">
-                <ScrollArea className="h-[280px]">
-                  <div className="p-3 space-y-2">
-                    {filters?.locations.slice(0, 30).map((loc) => (
-                      <div key={loc.value} className="flex items-center space-x-3 py-1">
-                        <Checkbox
-                          id={`loc-${loc.value}`}
-                          checked={localFilters.locations?.includes(loc.value)}
-                          onCheckedChange={() => handleLocationToggle(loc.value)}
-                        />
-                        <Label
-                          htmlFor={`loc-${loc.value}`}
-                          className="flex-1 text-sm font-normal cursor-pointer"
-                        >
-                          {loc.value}
-                          <span className="ml-2 text-muted-foreground">
-                            ({loc.count?.toLocaleString()})
-                          </span>
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Gender Filter - Multi-select */}
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">Gender</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 min-w-[130px] justify-between"
-                  disabled={isLoading || !filters}
-                >
-                  <span className="truncate">{getDisplayLabel('gender')}</span>
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-0" align="start">
-                <div className="p-3 space-y-2">
-                  {filters?.genders
-                    .filter((g) => g.value !== 'all')
-                    .map((g) => (
-                      <div key={g.value} className="flex items-center space-x-3 py-1">
-                        <Checkbox
-                          id={`gender-${g.value}`}
-                          checked={localFilters.gender?.includes(g.value) || false}
-                          onCheckedChange={() => handleGenderToggle(g.value)}
-                        />
-                        <Label
-                          htmlFor={`gender-${g.value}`}
-                          className="text-sm font-normal cursor-pointer"
-                        >
-                          {g.label}
-                        </Label>
-                      </div>
-                    ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Issuance Month - Start Date */}
-          <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">Issuance Month</Label>
-            <Select
-              value={localFilters.start_date || 'all'}
-              onValueChange={(value) => handleDateChange('start', value)}
+              className="h-9 min-w-[120px] justify-between bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
               disabled={isLoading || !filters}
             >
-              <SelectTrigger className="h-9 min-w-[130px]">
-                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue placeholder="All Months" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Months</SelectItem>
-                {monthOptions.slice(-24).map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
+              <span className="truncate text-sm">{getDisplayLabel('departments')}</span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0" align="start">
+            <ScrollArea className="h-[280px]">
+              <div className="p-3 space-y-2">
+                {filters?.departments.map((dept) => (
+                  <div key={dept.value} className="flex items-center space-x-3 py-1">
+                    <Checkbox
+                      id={`dept-${dept.value}`}
+                      checked={localFilters.departments?.includes(dept.value)}
+                      onCheckedChange={() => handleDepartmentToggle(dept.value)}
+                    />
+                    <Label
+                      htmlFor={`dept-${dept.value}`}
+                      className="flex-1 text-sm font-normal cursor-pointer"
+                    >
+                      {dept.value}
+                      <span className="ml-2 text-muted-foreground">
+                        ({dept.count?.toLocaleString()})
+                      </span>
+                    </Label>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Active filters badges */}
-          {activeCount > 0 && (
-            <div className="flex flex-wrap items-center gap-2 ml-auto">
-              {localFilters.departments?.map((dept) => (
-                <Badge
-                  key={dept}
-                  variant="secondary"
-                  className="gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => handleDepartmentToggle(dept)}
-                >
-                  {dept}
-                  <X className="h-3 w-3" />
-                </Badge>
-              ))}
-              {localFilters.locations?.map((loc) => (
-                <Badge
-                  key={loc}
-                  variant="secondary"
-                  className="gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => handleLocationToggle(loc)}
-                >
-                  {loc}
-                  <X className="h-3 w-3" />
-                </Badge>
-              ))}
-              {localFilters.gender?.map((g) => (
-                <Badge
-                  key={g}
-                  variant="secondary"
-                  className="gap-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={() => handleGenderToggle(g)}
-                >
-                  {g}
-                  <X className="h-3 w-3" />
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
       </div>
+
+      {/* Location Filter */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Location</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 min-w-[100px] justify-between bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+              disabled={isLoading || !filters}
+            >
+              <span className="truncate text-sm">{getDisplayLabel('locations')}</span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-0" align="start">
+            <ScrollArea className="h-[280px]">
+              <div className="p-3 space-y-2">
+                {filters?.locations.slice(0, 30).map((loc) => (
+                  <div key={loc.value} className="flex items-center space-x-3 py-1">
+                    <Checkbox
+                      id={`loc-${loc.value}`}
+                      checked={localFilters.locations?.includes(loc.value)}
+                      onCheckedChange={() => handleLocationToggle(loc.value)}
+                    />
+                    <Label
+                      htmlFor={`loc-${loc.value}`}
+                      className="flex-1 text-sm font-normal cursor-pointer"
+                    >
+                      {loc.value}
+                      <span className="ml-2 text-muted-foreground">
+                        ({loc.count?.toLocaleString()})
+                      </span>
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Gender Filter - Multi-select */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Gender</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 min-w-[80px] justify-between bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+              disabled={isLoading || !filters}
+            >
+              <span className="truncate text-sm">{getDisplayLabel('gender')}</span>
+              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-0" align="start">
+            <div className="p-3 space-y-2">
+              {filters?.genders
+                .filter((g) => g.value !== 'all')
+                .map((g) => (
+                  <div key={g.value} className="flex items-center space-x-3 py-1">
+                    <Checkbox
+                      id={`gender-${g.value}`}
+                      checked={localFilters.gender?.includes(g.value) || false}
+                      onCheckedChange={() => handleGenderToggle(g.value)}
+                    />
+                    <Label
+                      htmlFor={`gender-${g.value}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {g.label}
+                    </Label>
+                  </div>
+                ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Issuance Month - From */}
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-xs text-muted-foreground">Issuance Month</Label>
+        <Select
+          value={localFilters.start_date || 'all'}
+          onValueChange={(value) => handleDateChange('start', value)}
+          disabled={isLoading || !filters}
+        >
+          <SelectTrigger className="h-9 w-[110px]">
+            <SelectValue placeholder="Jan 2024" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {monthOptions.slice(-24).map((month) => (
+              <SelectItem key={month.value} value={month.value}>
+                {month.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* To label */}
+      <span className="text-sm text-muted-foreground pb-2">to</span>
+
+      {/* Issuance Month - To */}
+      <div className="flex flex-col gap-1.5">
+        <Select
+          value={localFilters.end_date || 'all'}
+          onValueChange={(value) => handleDateChange('end', value)}
+          disabled={isLoading || !filters}
+        >
+          <SelectTrigger className="h-9 w-[110px]">
+            <SelectValue placeholder="Dec 2024" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {monthOptions.slice(-24).map((month) => (
+              <SelectItem key={month.value} value={month.value}>
+                {month.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Apply Filters Button */}
+      <Button
+        onClick={applyFilters}
+        size="sm"
+        className="h-9 px-6"
+        disabled={isLoading}
+      >
+        Apply Filters
+      </Button>
     </div>
   );
 }

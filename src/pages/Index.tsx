@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { DashboardTabs, DashboardTab } from '@/components/dashboard/DashboardTabs';
 import { FilterPanel } from '@/components/dashboard/FilterPanel';
-import { KpiGrid } from '@/components/dashboard/KpiGrid';
+import { ActiveEmployeesView } from '@/components/dashboard/ActiveEmployeesView';
 import {
   fetchDashboard,
   fetchFilters,
@@ -30,7 +29,7 @@ const Index = () => {
   });
 
   // Fetch health status
-  const { data: health } = useQuery({
+  useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
     staleTime: 60000,
@@ -53,69 +52,55 @@ const Index = () => {
 
   const handleFiltersChange = useCallback((newFilters: KpiFilters) => {
     setActiveFilters(newFilters);
-  }, []);
-
-  const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    queryClient.invalidateQueries({ queryKey: ['health'] });
-    toast.success('Dashboard refreshed');
   }, [queryClient]);
 
   const handleTabChange = useCallback((tab: DashboardTab) => {
     setActiveTab(tab);
-    // Reset filters when changing tabs
     setActiveFilters({});
   }, []);
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader
-        health={health || null}
-        timestamp={dashboard?.timestamp || null}
-        isLoading={dashboardLoading}
-        onRefresh={handleRefresh}
-      />
-
       <main className="container py-6">
-        <div className="space-y-6">
-          {/* Tabs */}
-          <DashboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
+        {/* Page Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-foreground">Active Employees</h1>
+          <p className="text-sm text-muted-foreground">
+            Real time insights into employee status and eligibility metrics
+          </p>
+        </div>
 
-          {/* Filters */}
-          <FilterPanel
-            filters={filters || null}
-            activeFilters={activeFilters}
-            onFiltersChange={handleFiltersChange}
-            isLoading={filtersLoading}
-          />
+        {/* Filters Row */}
+        <FilterPanel
+          filters={filters || null}
+          activeFilters={activeFilters}
+          onFiltersChange={handleFiltersChange}
+          isLoading={filtersLoading}
+        />
 
-          {/* KPI Grid */}
-          <KpiGrid
+        {/* Tabs */}
+        <DashboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
+
+        {/* Content based on active tab */}
+        {activeTab === 'active-employees' && (
+          <ActiveEmployeesView
             kpis={normalizedKpis}
             isLoading={dashboardLoading}
           />
+        )}
 
-          {/* Footer info */}
-          {dashboard && (
-            <div className="flex items-center justify-center gap-4 py-4 text-sm text-muted-foreground">
-              <span>
-                {dashboard.ai_decision ? '🤖 AI-powered selection' : '📊 Standard view'}
-              </span>
-              <span>•</span>
-              <span>
-                {dashboard.successful_tools.length} tools executed
-              </span>
-              {dashboard.failed_tools.length > 0 && (
-                <>
-                  <span>•</span>
-                  <span className="text-destructive">
-                    {dashboard.failed_tools.length} failed
-                  </span>
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        {activeTab === 'department-eligibility' && (
+          <div className="flex h-64 items-center justify-center rounded-lg border border-border bg-card">
+            <p className="text-muted-foreground">Department Eligibility view coming soon</p>
+          </div>
+        )}
+
+        {activeTab === 'eligible-employees' && (
+          <div className="flex h-64 items-center justify-center rounded-lg border border-border bg-card">
+            <p className="text-muted-foreground">Eligible Employees view coming soon</p>
+          </div>
+        )}
       </main>
     </div>
   );
